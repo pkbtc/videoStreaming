@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
 import path from 'path'
 import fs from 'fs'
-import {} from 'child_process';
+import { exec } from 'child_process';
+import { stderr } from 'process';
 
 const app = express();
 
@@ -45,13 +46,30 @@ app.get('/',(req,res)=>{
 app.post('/uplaod',upload.single('file'),(req,res)=>{
     console.log("fileuplaoded");
     const lessonId=uuidv4();
-    const videoPah=req.file.path;
+    const videoPath=req.file.path;
     const outputPath=`./uploads/courses/${lessonId}`;
     const hlsPath=`${outputPath}/index.m3u8`;
     console.log(hlsPath);
     if(!fs.existsSync(outputPath)){
         fs.mkdirSync(outputPath,{recursive:true});
     }
+    //ffmpeg command
+    const ffmpegCommand = `ffmpeg -i ${videoPath} -codec:v libx264 -codec:a aac -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${outputPath}/segment%03d.ts" -start_number 0 ${hlsPath}
+
+    `;
+    exec(ffmpegCommand, (error ,stdout,stderr)=>{
+        if(error){
+            console.log(`exec error: ${error}`);
+        }
+        console.log(`stdout : ${stdout}`);
+        console.log(`stderr  : ${stderr}`);
+        const videoUrl=`http://localhost:8000/uploads/courses/${lessonId}/index.m3u8`;
+        res.json( {
+            message:"video converted",
+            videoUrl:videoUrl,
+            lessonId:lessonId
+        } )
+    })
 })
 app.listen(8000,()=>{
     console.log("server running in port 8000");
