@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import path from 'path'
+import fs from 'fs'
+import {} from 'child_process';
 
 const app = express();
 
@@ -36,18 +37,22 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
-});
+})
+app.get('/',(req,res)=>{
+    res.json({message:"hello"});
 
-app.get('/', (req, res) => {
-    res.json({ message: 'hello' });
-});
-
-// Corrected route definition
-app.post('/upload', upload.single('file'), (req, res) => {
-    console.log('file uploaded');
-    res.send('File uploaded successfully');
-});
-
-app.listen(8000, () => {
-    console.log('server running in port 8000');
-});
+})
+app.post('/uplaod',upload.single('file'),(req,res)=>{
+    console.log("fileuplaoded");
+    const lessonId=uuidv4();
+    const videoPah=req.file.path;
+    const outputPath=`./uploads/courses/${lessonId}`;
+    const hlsPath=`${outputPath}/index.m3u8`;
+    console.log(hlsPath);
+    if(!fs.existsSync(outputPath)){
+        fs.mkdirSync(outputPath,{recursive:true});
+    }
+})
+app.listen(8000,()=>{
+    console.log("server running in port 8000");
+})
