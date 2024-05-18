@@ -3,6 +3,8 @@ import cors from 'cors';
 import {v4 as uuidv4    } from 'uuid';
 import multer from 'multer';
 import path from 'path'
+import fs from 'fs'
+import {} from 'child_process';
 
 const app=express();
 
@@ -41,6 +43,14 @@ app.get('/',(req,res)=>{
 })
 app.post('/uplaod',upload.single('file'),(req,res)=>{
     console.log("fileuplaoded");
+    const lessonId=uuidv4();
+    const videoPah=req.file.path;
+    const outputPath=`./uploads/courses/${lessonId}`;
+    const hlsPath=`${outputPath}/index.m3u8`;
+    console.log(hlsPath);
+    if(!fs.existsSync(outputPath)){
+        fs.mkdirSync(outputPath,{recursive:true});
+    }
 })
 app.listen(8000,()=>{
     console.log("server running in port 8000");
